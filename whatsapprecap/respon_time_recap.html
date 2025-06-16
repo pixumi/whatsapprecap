@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Response Time WhatsApp Recap</title>
+  <style>
+    /* Dark mode variables - applied immediately */
+    :root {
+      --bg-color: #f9f9f9;
+      --text-color: #000;
+      --input-bg: #fff;
+      --input-border: #ccc;
+      --button-bg: #007bff;
+      --button-hover: #0056b3;
+      --copy-bg: #28a745;
+      --copy-hover: #1e7e34;
+      --clear-bg: #6c757d;
+      --clear-hover: #5a6268;
+      --table-border: #333;
+      --table-header-bg: #e1e1e1;
+      --ccp-link-color: #0000ee;
+      --select-bg: var(--input-bg);
+      --select-border: var(--input-border);
+      --dark-mode: 0; /* Default to light mode */
+    }
+
+    /* Dark mode variables - only applied when dark-mode class is present */
+    :root.dark-mode {
+      --bg-color: #1e1e1e;
+      --text-color: #f1f1f1;
+      --input-bg: #2e2e2e;
+      --input-border: #555;
+      --button-bg: #2980b9;
+      --button-hover: #1c5980;
+      --copy-bg: #2ecc71;
+      --copy-hover: #27ae60;
+      --clear-bg: #5a6268;
+      --clear-hover: #4a5257;
+      --table-border: #777;
+      --table-header-bg: #333;
+      --ccp-link-color: cyan;
+      --select-bg: #2e2e2e;
+      --select-border: #555;
+      --dark-mode: 1; /* Dark mode flag */
+    }
+
+    /* Initial hidden state to prevent FOUC */
+    .no-js {
+      visibility: hidden;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 2rem;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      max-width: 1400px;
+      margin: 0 auto;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: var(--text-color);
+    }
+    .container {
+      background-color: var(--input-bg);
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1.5rem;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 0.1rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--input-border);
+      border-radius: 4px;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      transition: all 0.3s;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: var(--button-bg);
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background-color: var(--button-bg);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 0.5rem;
+      transition: background-color 0.3s;
+      min-width: 140px;
+    }
+    button:hover {
+      background-color: var(--button-hover);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.5rem;
+      font-size: 0.95rem;
+      border: 1px solid var(--table-border);
+    }
+    th, td {
+      border: 1px solid var(--table-border);
+      padding: 0.8rem;
+      text-align: left;
+      color: var(--text-color);
+    }
+    th {
+      background-color: var(--table-header-bg);
+      font-weight: bold;
+      text-align: center;
+      vertical-align: middle;
+    }
+    #copyBtn {
+      background-color: var(--copy-bg);
+    }
+    #copyBtn:hover {
+      background-color: var(--copy-hover);
+    }
+    #clearBtn {
+      background-color: var(--clear-bg);
+    }
+    #clearBtn:hover {
+      background-color: var(--clear-hover);
+    }
+    #darkToggle {
+      float: right;
+      margin-bottom: 1rem;
+      background-color: #6c757d;
+      min-width: auto;
+    }
+    #darkToggle:hover {
+      background-color: #5a6268;
+    }
+
+    td a.ccp-link {
+      color: var(--ccp-link-color);
+      text-decoration: none;
+    }
+    td a.ccp-link:hover {
+      text-decoration: underline;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .format-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-right: 10px;
+    }
+    
+    #dateFormat {
+      padding: 0.6rem;
+      border-radius: 4px;
+      border: 1px solid var(--select-border);
+      background-color: var(--select-bg);
+      color: var(--text-color);
+      font-size: 0.9rem;
+      min-width: 180px;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .dharma-indicator {
+      background-color: #3498db;
+    }
+    .domas-indicator {
+      background-color: #e74c3c;
+    }
+  </style>
+  
+  <!-- Dark mode flash prevention - proper implementation -->
+  <script>
+    // Immediately apply dark mode before rendering
+    (function() {
+      // Remove no-js class
+      document.documentElement.classList.remove('no-js');
+      
+      // Get stored theme preference
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      
+      // Apply dark mode class immediately to root element
+      if (isDark) {
+        document.documentElement.classList.add('dark-mode');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <button id="darkToggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+  <h1>Response Time WhatsApp Recap</h1>
+  
+  <div class="container">
+    <textarea id="inputText" placeholder="Paste WhatsApp chat here..."></textarea>
+    
+    <div class="button-group">
+      <div class="format-selector">
+        <label for="dateFormat">Format Date:</label>
+        <select id="dateFormat">
+          <option value="format1">00:00, MM/DD/YYYY</option>
+          <option value="format2">00:00, DD/MM/YYYY</option>
+          <option value="format3">MM/DD, 00:00</option>
+          <option value="format4">DD/MM, 00:00</option>
+        </select>
+      </div>
+      <div class="action-buttons">
+        <button onclick="generateTable()">Generate</button>
+        <button id="copyBtn" onclick="copyTable()">Copy</button>
+        <button id="clearBtn" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <table id="logTable">
+    <thead>
+      <tr>
+        <th>Requester</th>
+        <th>Progress By</th>
+        <th>Request Time</th>
+        <th>Done Time</th>
+        <th>CCP</th>
+        <th>Request Content</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Initial message row added here -->
+      <tr>
+        <td colspan="6" style="text-align: center;">Paste WhatsApp chat to generate table</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    function normalizePhoneNumber(name) {
+      return name
+        .replace(/\b(mas|mbak|mba|pak|pa|bapa|bapak|ibu|ibu|buk|ibuk|kak|ka|BSS|MSJ|TDM|KUP|AGM|PMSS|MAS|CMX|CMSJ|COMEX|CMEX|COMEX MSJ|CMXMSJ|CMX MSJ|PLR|PAL|CMX PAL|CPAL|CPLR|CMXPLR|CMX PLR|COMEX PLR|CMX PALARAN|COMEX PALARAN|PALARAN|BSSR|CILEGON|CLG|CMXCLG|CMX CILEGON|PKM|SMD|SAMARINDA|OFFICE|JKT|JAKARTA|SBB|TAJ|MME|MBL|MBLH|MBLM|MBL HAULING|MBL MINING|CMX MAS|CMAS|COMEX MAS|CMXM|SAS|BSEE|BRN|BYN|CDI|BAYAN|MHU)\b\s*/gi, '')
+        .replace(/\+62\s?(\d+)/g, '0$1')
+        .replace(/[^\w\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function formatDate(dateStr, timeStr, formatType) {
+      let dateObj;
+      const year = new Date().getFullYear();
+      
+      if (formatType === "format1") {
+        // Format: "15:16, 6/15/2025"
+        const match = timeStr.match(/^(\d{1,2}:\d{2}),\s*(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (match) {
+          const [_, time, month, day, year] = match;
+          const correctedTime = time.replace('.', ':');
+          dateObj = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${correctedTime}:00`);
+        }
+      } 
+      else if (formatType === "format2") {
+        // Format: "15:24, 14/6/2025"
+        const match = timeStr.match(/^(\d{1,2}:\d{2}),\s*(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        if (match) {
+          const [_, time, day, month, year] = match;
+          const correctedTime = time.replace('.', ':');
+          dateObj = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${correctedTime}:00`);
+        }
+      }
+      else if (formatType === "format3") {
+        // Format: "6/12, 16:24"
+        const correctedTime = timeStr.replace('.', ':');
+        const [month, day] = dateStr.split('/');
+        dateObj = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${correctedTime}:00`);
+      }
+      else if (formatType === "format4") {
+        // Format: "12/6, 15:10" (DD/MM, HH:MM)
+        const correctedTime = timeStr.replace('.', ':');
+        const [day, month] = dateStr.split('/');
+        dateObj = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${correctedTime}:00`);
+      }
+
+      if (!dateObj || isNaN(dateObj)) return '';
+      return `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}/${dateObj.getFullYear()} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}:${String(dateObj.getSeconds()).padStart(2, '0')}`;
+    }
+
+    function generateTable() {
+      const textData = document.getElementById('inputText').value.trim();
+      if (!textData) {
+        alert('Please paste WhatsApp chat data first');
+        return;
+      }
+      
+      const formatType = document.getElementById('dateFormat').value;
+      const lines = textData.split('\n');
+      const logs = [];
+      const doneList = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        let match = null;
+        let sender = '';
+        let message = '';
+        let formattedTime = '';
+        
+        if (formatType === "format1") {
+          // Format: [15:16, 6/15/2025]
+          match = line.match(/^\[(\d{1,2}:\d{2}),\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\]\s*(.+?):\s*(.+)$/);
+          if (match) {
+            const [_, time, month, day, year, s, msg] = match;
+            sender = s;
+            message = msg;
+            formattedTime = formatDate('', `${time}, ${month}/${day}/${year}`, formatType);
+          }
+        } 
+        else if (formatType === "format2") {
+          // Format: [15:24, 14/6/2025]
+          match = line.match(/^\[(\d{1,2}:\d{2}),\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\]\s*(.+?):\s*(.+)$/);
+          if (match) {
+            const [_, time, day, month, year, s, msg] = match;
+            sender = s;
+            message = msg;
+            formattedTime = formatDate('', `${time}, ${day}/${month}/${year}`, formatType);
+          }
+        }
+        else if (formatType === "format3") {
+          // Format: [6/12, 16:24]
+          match = line.match(/^\[(\d+\/\d+),\s*(\d+[.:]\d+)\]\s*(.+?):\s*(.+)$/);
+          if (match) {
+            const [_, date, time, s, msg] = match;
+            sender = s;
+            message = msg;
+            formattedTime = formatDate(date, time, formatType);
+          }
+        }
+        else if (formatType === "format4") {
+          // Format: [12/6, 15:10] (DD/MM, HH:MM)
+          match = line.match(/^\[(\d+\/\d+),\s*(\d+[.:]\d+)\]\s*(.+?):\s*(.+)$/);
+          if (match) {
+            const [_, date, time, s, msg] = match;
+            sender = s;
+            message = msg;
+            formattedTime = formatDate(date, time, formatType);
+          }
+        }
+
+        if (match) {
+          const normalizedSender = normalizePhoneNumber(sender).toUpperCase();
+
+          if (message.trim().toLowerCase() === 'done') {
+            doneList.push({ time: formattedTime, sender: normalizedSender });
+          } else {
+            let content = message;
+            let j = i + 1;
+            while (j < lines.length && !lines[j].startsWith('[')) {
+              content += ' ' + lines[j].trim();
+              j++;
+            }
+            logs.push({
+              requester: normalizedSender,
+              requestTime: formattedTime,
+              doneTime: '',
+              ccp: 'https://bit.ly/RESPONSE_TIME',
+              requestContent: content,
+              progressBy: ''
+            });
+          }
+        }
+      }
+
+      // Assign done times and determine progressBy
+      for (let k = 0; k < logs.length; k++) {
+        if (k < doneList.length) {
+          logs[k].doneTime = doneList[k].time;
+          
+          const doneSender = doneList[k].sender.toLowerCase();
+          if (doneSender.includes('dharma')) {
+            logs[k].progressBy = 'DHARMA';
+          } else if (doneSender.includes('edo') || doneSender.includes('domas')) {
+            logs[k].progressBy = 'DOMAS';
+          } else {
+            logs[k].progressBy = doneList[k].sender;
+          }
+        }
+      }
+
+      const tbody = document.querySelector('#logTable tbody');
+      tbody.innerHTML = '';
+      
+      if (logs.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td colspan="6" style="text-align: center;">No valid requests found in the chat</td>`;
+        tbody.appendChild(row);
+        return;
+      }
+      
+      logs.forEach(log => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>"${log.requester}"</td>
+          <td>${log.progressBy || '-'}</td>
+          <td>${log.requestTime}</td>
+          <td>${log.doneTime || '-'}</td>
+          <td><a href="${log.ccp}" target="_blank" class="ccp-link">${log.ccp}</a></td>
+          <td>${log.requestContent}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function copyTable() {
+      const rows = document.querySelectorAll('#logTable tbody tr');
+      if (rows.length === 0 || rows[0].querySelector('td').textContent === 'No valid requests found in the chat') {
+        alert('No data to copy');
+        return;
+      }
+      
+      let output = '';
+      rows.forEach(row => {
+        const cells = Array.from(row.querySelectorAll('td')).slice(0, 5);
+        output += cells.map(cell => cell.innerText).join('\t') + '\n';
+      });
+      
+      navigator.clipboard.writeText(output)
+        .then(() => alert("Table copied successfully! Paste into Excel."))
+        .catch(err => alert("Failed to copy table."));
+    }
+
+    function clearAll() {
+      // Clear input textarea
+      document.getElementById('inputText').value = '';
+      
+      // Clear table body and show initial message
+      const tbody = document.querySelector('#logTable tbody');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" style="text-align: center;">Paste WhatsApp chat to generate table</td>
+        </tr>
+      `;
+    }
+
+    function toggleDarkMode() {
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark-mode');
+      const toggleBtn = document.getElementById('darkToggle');
+      toggleBtn.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+      localStorage.setItem('darkMode', isDark ? 'true' : 'false');
+    }
+
+    // Save selected date format to localStorage
+    function saveDateFormat() {
+      const formatSelector = document.getElementById('dateFormat');
+      localStorage.setItem('dateFormat', formatSelector.value);
+    }
+
+    window.onload = () => {
+      // Load date format preference
+      const savedFormat = localStorage.getItem('dateFormat');
+      const formatSelector = document.getElementById('dateFormat');
+      if (savedFormat) {
+        formatSelector.value = savedFormat;
+      }
+      
+      // Add event listener to save format selection
+      formatSelector.addEventListener('change', saveDateFormat);
+      
+      // Set dark mode button text based on current state
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      const toggleBtn = document.getElementById('darkToggle');
+      if (isDark) {
+        toggleBtn.textContent = '☀️ Light Mode';
+      } else {
+        toggleBtn.textContent = '🌙 Dark Mode';
+      }
+      
+      // Remove initial hidden state
+      document.documentElement.classList.remove('no-js');
+      
+      // Ensure the initial message is shown
+      const tbody = document.querySelector('#logTable tbody');
+      if (tbody.innerHTML.trim() === '') {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="text-align: center;">Paste WhatsApp chat to generate table</td>
+          </tr>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>
