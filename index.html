@@ -181,20 +181,6 @@
       display: flex;
       gap: 10px;
     }
-    
-    .status-indicator {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-right: 8px;
-    }
-    .dharma-indicator {
-      background-color: #3498db;
-    }
-    .domas-indicator {
-      background-color: #e74c3c;
-    }
   </style>
   
   <!-- Dark mode flash prevention - proper implementation -->
@@ -370,15 +356,32 @@
         if (match) {
           const normalizedSender = normalizePhoneNumber(sender).toUpperCase();
 
-          if (message.trim().toLowerCase() === 'done') {
+          // Check if sender is Dharma, Edo, or Domas (case-insensitive)
+          const isFeedbackSender = 
+            normalizedSender.includes('DHARMA') || 
+            normalizedSender.includes('EDO') || 
+            normalizedSender.includes('DOMAS');
+          
+          if (isFeedbackSender) {
+            // Add to doneList regardless of message content
             doneList.push({ time: formattedTime, sender: normalizedSender });
+
+            // Skip consecutive non-header lines (multi-line feedback)
+            let j = i + 1;
+            while (j < lines.length && !lines[j].startsWith('[')) {
+              j++;
+            }
+            i = j - 1;
           } else {
+            // This is a request
             let content = message;
             let j = i + 1;
             while (j < lines.length && !lines[j].startsWith('[')) {
               content += ' ' + lines[j].trim();
               j++;
             }
+            i = j - 1;
+
             logs.push({
               requester: normalizedSender,
               requestTime: formattedTime,
