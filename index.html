@@ -260,7 +260,7 @@
       
       if (formatType === "format1") {
         // Format: "15:16, 6/15/2025"
-        const match = timeStr.match(/^(\d{1,2}:\d{2}),\s*(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        const match = timeStr.match(/^(\d{1,2}[.:]\d{2}),\s*(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
         if (match) {
           const [_, time, month, day, year] = match;
           const correctedTime = time.replace('.', ':');
@@ -269,7 +269,7 @@
       } 
       else if (formatType === "format2") {
         // Format: "15:24, 14/6/2025"
-        const match = timeStr.match(/^(\d{1,2}:\d{2}),\s*(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        const match = timeStr.match(/^(\d{1,2}[.:]\d{2}),\s*(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
         if (match) {
           const [_, time, day, month, year] = match;
           const correctedTime = time.replace('.', ':');
@@ -290,7 +290,8 @@
       }
 
       if (!dateObj || isNaN(dateObj)) return '';
-      return `${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}/${dateObj.getFullYear()} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}:${String(dateObj.getSeconds()).padStart(2, '0')}`;
+      // UPDATED: Changed the format to DD/MM/YYYY HH:MM:SS
+      return `${String(dateObj.getDate()).padStart(2, '0')}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${dateObj.getFullYear()} ${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}:${String(dateObj.getSeconds()).padStart(2, '0')}`;
     }
 
     function generateTable() {
@@ -314,7 +315,7 @@
         
         if (formatType === "format1") {
           // Format: [15:16, 6/15/2025]
-          match = line.match(/^\[(\d{1,2}:\d{2}),\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\]\s*(.+?):\s*(.+)$/);
+          match = line.match(/^\[(\d{1,2}[.:]\d{2}),\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\]\s*(.+?):\s*(.+)$/);
           if (match) {
             const [_, time, month, day, year, s, msg] = match;
             sender = s;
@@ -324,7 +325,7 @@
         } 
         else if (formatType === "format2") {
           // Format: [15:24, 14/6/2025]
-          match = line.match(/^\[(\d{1,2}:\d{2}),\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\]\s*(.+?):\s*(.+)$/);
+          match = line.match(/^\[(\d{1,2}[.:]\d{2}),\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\]\s*(.+?):\s*(.+)$/);
           if (match) {
             const [_, time, day, month, year, s, msg] = match;
             sender = s;
